@@ -1,17 +1,31 @@
 import numpy as np
 import random
+import math
 
-x1 = [-10,10]
-x2 = [-10,10]
+x1 = [-100,100]
+x2 = [-100,100]
 pops_num = 100
-generatione = 10000 // pops_num
+generatione = 10000 // pops_num #10k is max total pops
 selected_parent_num = 20 #and also child amount, same amount
-cross_probs = 0.8
-mutate_probs = 0.01
-alfha = 0.6 #for crossover
-
-def functione(x1, x2):
-	return (x1 ** 2) - (x2 ** 2)
+cross_probs = 0.9
+mutate_probs = 0.1
+alfha = 0.5 #for crossover
+cee = 2 #for scaling
+'''
+def functione(x, y):
+	a1 = 0
+	a2 = 0
+	for i in range(1,6):
+		a1 += i * math.cos(math.radians((i + 1) * x + 1))
+		a2 += i * math.cos(math.radians((i + 1) * y + 1))
+	a1 = a1 * -1
+	return a1 * a2
+'''
+def functione(x, y):
+	a = -1 * math.cos(math.radians(x))
+	b = math.cos(math.radians(y))
+	c = math.exp((-1 * ((x - math.pi) ** 2)) - ((y - math.pi) ** 2))
+	return a * b * c
 
 def generateParent(pops_num):
 	pops = [] #whole populatione
@@ -37,10 +51,23 @@ def chromosomeFitness(pops, x1, x2):
 		fitnesse.append(chromosome_fitness)
 	return fitnesse
 
-def selectingParent(fits, num_parent, pops):
+def selectingParent(fits, num_parent, pops, cee):
 	selected_parent = []
-	fits.sort(key=lambda x: x[1], reverse=True)
-	fits = fits[:len(fits)-(len(pops) - num_parent)]
+	#sigma scaling (pizdec)
+	'''
+	meanArr = np.mean(fits, axis = 0)
+	stdevArr = np.std(fits, axis = 0)
+	mean = meanArr[1]
+	stdev = stdevArr[1]
+	for i in fits:
+		i[1] = i[1] + (mean - cee * stdev)
+	'''
+	#window scaling
+	mins = min(x[1] for x in fits)
+	for i in fits:
+		i[1] = (i[1] - mins) + (mins * 0.0000000000001) #plus so that the min list ain't 0
+	#fits.sort(key=lambda x: x[1], reverse=True)
+	#fits = fits[:len(fits)-(len(pops) - num_parent)]
 	random.shuffle(fits)
 	sum = 0
 	for i in fits:
@@ -78,14 +105,14 @@ def mutatione(child, mutate_probs):
 	z = random.uniform(0, 1)
 	if z <= cross_probs: #creep
 		xory = random.choice([0, 1])
-		step = random.choice([-0.1, 0.1])
-		if(step == -0.1):
-			if(child[xory] <= 0.1):
+		step = random.choice([-0.01, 0.01])
+		if(step == -0.01):
+			if(child[xory] <= 0.01):
 				child[xory] = 0
 			else:
 				child[xory] += step
-		elif(step == 0.1):
-			if(child[xory] >= 0.9):
+		elif(step == 0.01):
+			if(child[xory] >= 0.99):
 				child[xory] = 1
 			else:
 				child[xory] += step
@@ -110,17 +137,10 @@ def bestIndividue(pops, x1, x2):
 pops = generateParent(pops_num)
 for i in range(generatione):
 	fits = chromosomeFitness(pops, x1, x2)
-	selected_parente = selectingParent(fits, selected_parent_num, pops)
+	selected_parente = selectingParent(fits, selected_parent_num, pops, cee)
 	child = crossOver(selected_parente, cross_probs, alfha, mutate_probs)
 	replacePops(pops, child, x1, x2)
-	if i == 0:
-		best = bestIndividue(pops, x1, x2)
-		mins = functione(pops[best][0],pops[best][1])
-	else:
-		bestxs = bestIndividue(pops, x1, x2)
-		xs = functione(pops[best][0],pops[best][1])
-		if xs < mins:
-			best = bestxs
-print(decodeChromosome(pops[i][0], x1))
-print(decodeChromosome(pops[i][1], x2))
-print(functione(decodeChromosome(pops[i][0], x1), decodeChromosome(pops[i][1],x2)))
+best = bestIndividue(pops, x1, x2)
+print(decodeChromosome(pops[best][0], x1))
+print(decodeChromosome(pops[best][1], x2))
+print(functione(decodeChromosome(pops[best][0], x1), decodeChromosome(pops[best][1],x2)))
