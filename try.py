@@ -11,6 +11,8 @@ cross_probs = 0.9
 mutate_probs = 0.1
 alfha = 0.5 #for crossover
 cee = 2 #for scaling
+t_size = 32 #tournament size, for parent selection
+best_probs = 0.8 #best choosen probs, for tournament
 '''
 def functione(x, y):
 	a1 = 0
@@ -51,8 +53,25 @@ def chromosomeFitness(pops, x1, x2):
 		fitnesse.append(chromosome_fitness)
 	return fitnesse
 
-def selectingParent(fits, num_parent, pops, cee):
+def selectingParent(fits, num_parent, pops, best_probs, t_size):
 	selected_parent = []
+	for i in range(num_parent):
+		tournament_participant = []
+		selected = False
+		for j in range(t_size):
+			p = random.randrange(len(pops) - 1)
+			tournament_participant.append(fits[p])
+		rand_num = random.uniform(0, 1)
+		tournament_participant.sort(key=lambda x: x[1], reverse=True)
+		for j in range(t_size):
+			if i >= (1 - (best_probs * ((1 - best_probs) ** j))):
+				selected_parent.append(pops[tournament_participant[j][0]])
+				selected = True
+				break
+		if selected == False:
+			selected_parent.append(pops[tournament_participant[t_size - 1][0]])
+	return selected_parent
+	#roulette wheel sus pizdec, cuz fitness can't be negative you silly	
 	#sigma scaling (pizdec)
 	'''
 	meanArr = np.mean(fits, axis = 0)
@@ -61,11 +80,11 @@ def selectingParent(fits, num_parent, pops, cee):
 	stdev = stdevArr[1]
 	for i in fits:
 		i[1] = i[1] + (mean - cee * stdev)
-	'''
+	
 	#window scaling
 	mins = min(x[1] for x in fits)
 	for i in fits:
-		i[1] = (i[1] - mins) + (mins * 0.0000000000001) #plus so that the min list ain't 0
+		i[1] = (i[1] - mins)
 	#fits.sort(key=lambda x: x[1], reverse=True)
 	#fits = fits[:len(fits)-(len(pops) - num_parent)]
 	random.shuffle(fits)
@@ -81,6 +100,7 @@ def selectingParent(fits, num_parent, pops, cee):
 				selected_parent.append(pops[j[0]])
 				break
 	return selected_parent
+	'''
 
 def crossOver(parents, cross_probs, alfha, mutate_probs):
 	child = []
@@ -134,10 +154,11 @@ def bestIndividue(pops, x1, x2):
 	pops_fitness.sort(key=lambda x: x[1], reverse=True)
 	return pops_fitness[0][0]
 
+
 pops = generateParent(pops_num)
 for i in range(generatione):
 	fits = chromosomeFitness(pops, x1, x2)
-	selected_parente = selectingParent(fits, selected_parent_num, pops, cee)
+	selected_parente = selectingParent(fits, selected_parent_num, pops, best_probs, t_size)#,cee)
 	child = crossOver(selected_parente, cross_probs, alfha, mutate_probs)
 	replacePops(pops, child, x1, x2)
 best = bestIndividue(pops, x1, x2)
