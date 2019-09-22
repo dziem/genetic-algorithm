@@ -12,8 +12,9 @@ mutate_probs = 0.1
 alfha = 0.5 #for crossover
 cee = 2 #for scaling
 t_size = 32 #tournament size, for parent selection
-best_probs = 0.8 #best choosen probs, for tournament
-'''
+best_probs = 0.5 #best choosen probs, for tournament
+creep_step = 0.001 #for creeping
+
 def functione(x, y):
 	a1 = 0
 	a2 = 0
@@ -28,7 +29,7 @@ def functione(x, y):
 	b = math.cos(math.radians(y))
 	c = math.exp((-1 * ((x - math.pi) ** 2)) - ((y - math.pi) ** 2))
 	return a * b * c
-
+'''
 def generateParent(pops_num):
 	pops = [] #whole populatione
 	for i in range(pops_num):
@@ -57,9 +58,14 @@ def selectingParent(fits, num_parent, pops, best_probs, t_size):
 	selected_parent = []
 	for i in range(num_parent):
 		tournament_participant = []
+		picked = []
 		selected = False
 		for j in range(t_size):
-			p = random.randrange(len(pops) - 1)
+			while True: #to avoid a double pick on an individual
+				p = random.randrange(len(pops))
+				if p not in picked:
+					picked.append(p)
+					break
 			tournament_participant.append(fits[p])
 		rand_num = random.uniform(0, 1)
 		tournament_participant.sort(key=lambda x: x[1], reverse=True)
@@ -102,7 +108,7 @@ def selectingParent(fits, num_parent, pops, best_probs, t_size):
 	return selected_parent
 	'''
 
-def crossOver(parents, cross_probs, alfha, mutate_probs):
+def crossOver(parents, cross_probs, alfha, mutate_probs, creep_step): #and also calling mutation
 	child = []
 	for i in range(0,len(parents),2):
 		z = random.uniform(0, 1)
@@ -112,28 +118,28 @@ def crossOver(parents, cross_probs, alfha, mutate_probs):
 			newy = (alfha * parents[i][1]) + ((1 - alfha) * parents[i + 1][1])
 			child_chromosome.append(newx)
 			child_chromosome.append(newy)
-			child.append(mutatione(child_chromosome, mutate_probs))
-			child.append(mutatione(child_chromosome, mutate_probs))
+			child.append(mutatione(child_chromosome, mutate_probs, creep_step))
+			child.append(mutatione(child_chromosome, mutate_probs, creep_step))
 		else:
-			mutatione(parents[i], mutate_probs)
-			mutatione(parents[i + 1], mutate_probs)
+			mutatione(parents[i], mutate_probs, creep_step)
+			mutatione(parents[i + 1], mutate_probs, creep_step)
 			child.append(parents[i])	
 			child.append(parents[i + 1])	
 	return child
 	
-def mutatione(child, mutate_probs):
+def mutatione(child, mutate_probs, creep_step):
 	z = random.uniform(0, 1)
 	if z <= cross_probs: #creep
 		xory = random.choice([0, 1])
-		step = random.choice([-0.01, 0.01])
-		if(step == -0.01):
-			if(child[xory] <= 0.01):
-				child[xory] = 0
+		step = random.choice([(-1 * creep_step), creep_step])
+		if(step == (-1 * creep_step)):
+			if(child[xory] <= creep_step):
+				child[xory] = 0 #so that the creep result ain't out of 0 - 1
 			else:
 				child[xory] += step
-		elif(step == 0.01):
-			if(child[xory] >= 0.99):
-				child[xory] = 1
+		elif(step == creep_step):
+			if(child[xory] >= (1 - creep_step)):
+				child[xory] = 1 #so that the creep result ain't out of 0 - 1
 			else:
 				child[xory] += step
 	return child
@@ -154,12 +160,11 @@ def bestIndividue(pops, x1, x2):
 	pops_fitness.sort(key=lambda x: x[1], reverse=True)
 	return pops_fitness[0][0]
 
-
 pops = generateParent(pops_num)
 for i in range(generatione):
 	fits = chromosomeFitness(pops, x1, x2)
 	selected_parente = selectingParent(fits, selected_parent_num, pops, best_probs, t_size)#,cee)
-	child = crossOver(selected_parente, cross_probs, alfha, mutate_probs)
+	child = crossOver(selected_parente, cross_probs, alfha, mutate_probs, creep_step)
 	replacePops(pops, child, x1, x2)
 best = bestIndividue(pops, x1, x2)
 print(decodeChromosome(pops[best][0], x1))
