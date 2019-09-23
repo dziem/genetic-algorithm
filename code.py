@@ -166,9 +166,9 @@ for z in range(30):
 			worst_solution = the_solution
 			worst_chromosome = solution
 print('best solution')
-print(decodeChromosome(best_chromosome[0]) , ' - ' , decodeChromosome(best_chromosome[1]))
+print(decodeChromosome(best_chromosome[0], x1) , ' - ' , decodeChromosome(best_chromosome[1], x2))
 print('f(x1,x2) = ' , best_solution)
 print('worst solution')
-print(decodeChromosome(worst_chromosome[0]) , ' - ' , decodeChromosome(worst_chromosome[1]))
+print(decodeChromosome(worst_chromosome[0], x1) , ' - ' , decodeChromosome(worst_chromosome[1], x2))
 print('f(x1,x2) = ' , worst_solution)
 print('average f(x) = ' , (sum / 30))

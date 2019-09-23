@@ -14,7 +14,8 @@ cee = 2 #for scaling
 t_size = 32 #tournament size, for parent selection
 best_probs = 0.5 #best choosen probs, for tournament
 creep_step = 0.001 #for creeping
-
+stop_after = 40 #stop running after 5 generation without improvement
+'''
 def functione(x, y):
 	a1 = 0
 	a2 = 0
@@ -29,7 +30,7 @@ def functione(x, y):
 	b = math.cos(math.radians(y))
 	c = math.exp((-1 * ((x - math.pi) ** 2)) - ((y - math.pi) ** 2))
 	return a * b * c
-'''
+
 def generateParent(pops_num):
 	pops = [] #whole populatione
 	for i in range(pops_num):
@@ -161,12 +162,22 @@ def bestIndividue(pops, x1, x2):
 	return pops_fitness[0][0]
 
 pops = generateParent(pops_num)
+solution = pops[bestIndividue(pops, x1, x2)]
+stop_counter = 0
 for i in range(generatione):
 	fits = chromosomeFitness(pops, x1, x2)
 	selected_parente = selectingParent(fits, selected_parent_num, pops, best_probs, t_size)#,cee)
 	child = crossOver(selected_parente, cross_probs, alfha, mutate_probs, creep_step)
 	replacePops(pops, child, x1, x2)
-best = bestIndividue(pops, x1, x2)
-print(decodeChromosome(pops[best][0], x1))
-print(decodeChromosome(pops[best][1], x2))
-print(functione(decodeChromosome(pops[best][0], x1), decodeChromosome(pops[best][1],x2)))
+	best = pops[bestIndividue(pops, x1, x2)]
+	if (functione(decodeChromosome(best[0], x1), decodeChromosome(best[1],x2)) < functione(decodeChromosome(solution[0], x1), decodeChromosome(solution[1],x2))):
+		stop_counter = 0
+		solution = best
+	else:
+		stop_counter += 1
+	if stop_counter >= stop_after:
+		print('stop')
+		break
+print(decodeChromosome(solution[0], x1))
+print(decodeChromosome(solution[1], x2))
+print(functione(decodeChromosome(solution[0], x1), decodeChromosome(solution[1],x2)))
