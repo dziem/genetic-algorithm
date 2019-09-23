@@ -70,11 +70,13 @@ def selectingParent(fits, num_parent, pops, best_probs, t_size):
 			tournament_participant.append(fits[p])
 		rand_num = random.uniform(0, 1)
 		tournament_participant.sort(key=lambda x: x[1], reverse=True)
+		prev = 0
 		for j in range(t_size):
-			if i >= (1 - (best_probs * ((1 - best_probs) ** j))):
+			if rand_num >= prev and rand_num <= (1 - (best_probs * ((1 - best_probs) ** j))):
 				selected_parent.append(pops[tournament_participant[j][0]])
 				selected = True
 				break
+			prev = 1 - (best_probs * ((1 - best_probs) ** j))
 		if selected == False:
 			selected_parent.append(pops[tournament_participant[t_size - 1][0]])
 	return selected_parent
@@ -160,6 +162,7 @@ def bestIndividue(pops, x1, x2):
 	pops_fitness = chromosomeFitness(pops, x1, x2)
 	pops_fitness.sort(key=lambda x: x[1], reverse=True)
 	return pops_fitness[0][0]
+
 
 pops = generateParent(pops_num)
 solution = pops[bestIndividue(pops, x1, x2)]
