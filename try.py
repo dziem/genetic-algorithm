@@ -116,13 +116,14 @@ def crossOver(parents, cross_probs, alfha, mutate_probs, creep_step): #and also 
 	for i in range(0,len(parents),2):
 		z = random.uniform(0, 1)
 		if z >= (1 - cross_probs): #whole arithmetic crossover
-			child_chromosome = []
-			newx = (alfha * parents[i][0]) + ((1 - alfha) * parents[i + 1][0])
-			newy = (alfha * parents[i][1]) + ((1 - alfha) * parents[i + 1][1])
-			child_chromosome.append(newx)
-			child_chromosome.append(newy)
-			child.append(mutatione(child_chromosome, mutate_probs, creep_step))
-			child.append(mutatione(child_chromosome, mutate_probs, creep_step))
+			child1 = [] #alpha * parent1 + (1 - alpha) * parent2
+			child1.append((alfha * parents[i][0]) + ((1 - alfha) * parents[i + 1][0])) #bit x1
+			child1.append((alfha * parents[i][1]) + ((1 - alfha) * parents[i + 1][1])) #bit x2
+			child2 = [] #alpha * parent2 + (1 - alpha) * parent1
+			child2.append((alfha * parents[i + 1][0]) + ((1 - alfha) * parents[i][0])) #bit x1
+			child2.append((alfha * parents[i + 1][1]) + ((1 - alfha) * parents[i][1])) #bit x2
+			child.append(mutatione(child1, mutate_probs, creep_step)) #mutate child
+			child.append(mutatione(child2, mutate_probs, creep_step)) #mutate child
 		else:
 			mutatione(parents[i], mutate_probs, creep_step)
 			mutatione(parents[i + 1], mutate_probs, creep_step)
@@ -132,7 +133,7 @@ def crossOver(parents, cross_probs, alfha, mutate_probs, creep_step): #and also 
 	
 def mutatione(child, mutate_probs, creep_step):
 	z = random.uniform(0, 1)
-	if z <= cross_probs: #creep
+	if z <= mutate_probs: #creep
 		xory = random.choice([0, 1])
 		step = random.choice([(-1 * creep_step), creep_step])
 		if(step == (-1 * creep_step)):
@@ -149,7 +150,7 @@ def mutatione(child, mutate_probs, creep_step):
 
 def replacePops(pops, child, x1, x2):
 	pops_fitness = chromosomeFitness(pops, x1, x2)
-	pops_fitness.sort(key=lambda x: x[1], reverse=True)
+	pops_fitness.sort(key=lambda x: x[1])
 	pops_fitness = pops_fitness[:len(pops_fitness)-(len(pops)-len(child))]
 	pops_fitness.sort(key=lambda x: x[0], reverse=True)
 	for i in pops_fitness:

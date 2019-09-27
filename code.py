@@ -2,20 +2,21 @@ import numpy as np
 import random
 import math
 
-x1 = [-100,100] #x1 value range
-x2 = [-100,100] #x2 value range
+x1 = [-100,100] #x1 value range, -100 t0 100
+x2 = [-100,100] #x2 value range, -100 to 100
 pops_num = 100 #amount of population per generation
 generatione = 10000 // pops_num #the maximum amount of generation, 10k is max total pops
 selected_parent_num = 20 #and also child amount, same amount
 cross_probs = 0.9 #crossover probability
-mutate_probs = 0.1 #mutation probability
+mutate_probs = 0.9 #mutation probability
 alfha = 0.5 #for crossover calculation
-t_size = 32 #tournament size, for parent selection
-best_probs = 0.5 #probability to choose tournament winner = p * (1 - p)^n , n = 0 ... t_size where 0 is best and so on
+t_size = 40 #tournament size, for parent selection
+best_probs = 0.33 #probability to choose tournament winner = p * (1 - p)^n , n = 0 ... t_size where 0 is best and so on
 creep_step = 0.001 #for creeping, -x or +x
 stop_after = 25 #stop running after x generation without improvement
 run_times = 30 #x times running the GA, for best solution, worst solution, and average
-
+#changed params = original params, best
+#selected_parent_num = 20
 '''
 cos note
 The value passed in this function should be in radians.
@@ -27,6 +28,7 @@ sooo all the cos use radian, for example cos(x) -> math.cos(math.radians(x))
 change formula/function note
 just comment one functione(x,y) and leave the other one
 '''
+
 #function 1
 def functione(x, y):
 	a1 = 0
@@ -112,13 +114,14 @@ def crossOver(parents, cross_probs, alfha, mutate_probs, creep_step): #also call
 	for i in range(0,len(parents),2): #loop 0 to parent num step 2
 		z = random.uniform(0, 1) #random number
 		if z >= (1 - cross_probs): #if true crossover
-			child_chromosome = []
-			newx = (alfha * parents[i][0]) + ((1 - alfha) * parents[i + 1][0])
-			newy = (alfha * parents[i][1]) + ((1 - alfha) * parents[i + 1][1])
-			child_chromosome.append(newx)
-			child_chromosome.append(newy)
-			child.append(mutatione(child_chromosome, mutate_probs, creep_step)) #mutate child
-			child.append(mutatione(child_chromosome, mutate_probs, creep_step)) #mutate child
+			child1 = [] #alpha * parent1 + (1 - alpha) * parent2
+			child1.append((alfha * parents[i][0]) + ((1 - alfha) * parents[i + 1][0])) #bit x1
+			child1.append((alfha * parents[i][1]) + ((1 - alfha) * parents[i + 1][1])) #bit x2
+			child2 = [] #alpha * parent2 + (1 - alpha) * parent1
+			child2.append((alfha * parents[i + 1][0]) + ((1 - alfha) * parents[i][0])) #bit x1
+			child2.append((alfha * parents[i + 1][1]) + ((1 - alfha) * parents[i][1])) #bit x2
+			child.append(mutatione(child1, mutate_probs, creep_step)) #mutate child
+			child.append(mutatione(child2, mutate_probs, creep_step)) #mutate child
 		else: #else no crossover
 			mutatione(parents[i], mutate_probs, creep_step) #but mutate parent
 			mutatione(parents[i + 1], mutate_probs, creep_step) #but mutate parent
@@ -130,7 +133,7 @@ def mutatione(child, mutate_probs, creep_step):
 	#mutation function, params individual, mutation probability, creep step, ex (child, 0.1, 0.001)
 	#mutation using creeping, creeping on one bit, either x1 or x2, creeping by + or -
 	z = random.uniform(0, 1) #random number
-	if z <= cross_probs: #if true mutate, if false the no mutation
+	if z <= mutate_probs: #if true mutate, if false the no mutation
 		xory = random.choice([0, 1]) #pick creep x1 or x2
 		step = random.choice([(-1 * creep_step), creep_step]) #pick + or -
 		if(step == (-1 * creep_step)):
@@ -149,7 +152,7 @@ def replacePops(pops, child, x1, x2):
 	#function to replace population with new child, params population, children, value range x1 and x2
 	#params ex. (pops, children, [-100,100], [-100,100])
 	pops_fitness = chromosomeFitness(pops, x1, x2) #find chromosome fitness for current population
-	pops_fitness.sort(key=lambda x: x[1], reverse=True) #sort fitness value descending
+	pops_fitness.sort(key=lambda x: x[1]) #sort fitness value descending
 	pops_fitness = pops_fitness[:len(pops_fitness)-(len(pops)-len(child))] #get worst fitness value, same amount with child amount
 	pops_fitness.sort(key=lambda x: x[0], reverse=True) #sort the fitness index descending, to avoid index error/crash
 	for i in pops_fitness:
